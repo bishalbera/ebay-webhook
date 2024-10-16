@@ -40,11 +40,12 @@ app.get("/api/ebay-webhook", (req, res) => {
 
 // POST endpoint to handle notifications
 app.post("/api/ebay-webhook", (req, res) => {
-  if (req.headers["x-ebay-token"] !== verificationToken) {
-    return res.status(403).send("Unauthorized");
-  }
+  // if (req.headers["x-ebay-token"] !== verificationToken) {
+  //   return res.status(403).send("Unauthorized");
+  // }
 
-  console.log("Received eBay notification:", req.body);
+  notificationDetails = req.body;
+  console.log("Received eBay notification:", notificationDetails);
   res.status(200).send("Notification received");
 });
 
