@@ -29,7 +29,7 @@ app.get("/api/ebay-webhook", (req, res) => {
     hash.update(verificationToken);
     hash.update(endpoint);
 
-    const challengeResponse = hash.digest("hex");
+    const challengeResponse = hash.digest("hex").toString();
 
     res.status(200).json({ challengeResponse });
   } catch (error) {
