@@ -6,32 +6,36 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Configuration values
-const verificationToken = process.env.VERIFICATION_TOKEN; // Your verification token
-const endpointURL = process.env.ENDPOINT_URL; // Your public Vercel endpoint
+// const verificationToken = process.env.VERIFICATION_TOKEN; // Your verification token
+// const endpointURL = process.env.ENDPOINT_URL; // Your public Vercel endpoint
 
 app.use(bodyParser.json());
 
 // GET endpoint to handle the challenge code from eBay
 app.get("/api/ebay-webhook", (req, res) => {
-  const challengeCode = req.query.challenge_code; // Extract the challenge code from query params
+  const challengeCode = req.query.challenge_code;
+  const verificationToken = process.env.VERIFICATION_TOKEN;
+  const endpoint = process.env.ENDPOINT_URL;
 
-  if (!challengeCode) {
-    return res.status(400).send({ error: "Missing challenge code" });
+  // Check if any variable is missing
+  if (!challengeCode || !verificationToken || !endpoint) {
+    console.error("Missing required parameters");
+    return res.status(400).json({ error: "Missing required parameters" });
   }
 
-  // Generate the response hash by concatenating the values in the correct order
-  const hash = createHash("sha256");
-  hash.update(challengeCode);
-  hash.update(verificationToken);
-  hash.update(endpointURL);
+  try {
+    const hash = createHash("sha256");
+    hash.update(challengeCode);
+    hash.update(verificationToken);
+    hash.update(endpoint);
 
-  const responseHash = hash.digest("hex"); // Get the final hashed value
+    const challengeResponse = hash.digest("hex");
 
-  console.log("Challenge Response:", responseHash); // For debugging
-
-  // Respond with the challenge response in JSON format
-  res.setHeader("Content-Type", "application/json"); // Ensure correct header
-  res.status(200).json({ challengeResponse: responseHash });
+    res.status(200).json({ challengeResponse });
+  } catch (error) {
+    console.error("Error generating hash:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
 // POST endpoint to handle notifications
